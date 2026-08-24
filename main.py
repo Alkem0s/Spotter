@@ -353,7 +353,7 @@ def main():
     dec_raw.to_csv("december-chart-inputs.csv", index=False)
     print(f"Updated december-chart-inputs.csv with {len(dec_raw)} rows")
 
-    # 7. Scorer validation
+    # Scorer validation
     print("\nRunning score.py")
     cmd = [
         "python",

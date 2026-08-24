@@ -14,7 +14,7 @@ def explore_data(filepath="train-test.csv"):
     print("\nEquipment counts:")
     print(df["equipment"].value_counts())
 
-    print("\nMISSING VALUES & DATA TYPES")
+    print("\nMISSING VALUES AND DATA TYPES")
     print(df.dtypes.to_frame("dtype").join(df.isna().sum().to_frame("null_count")))
 
     print("\nNUMERIC SUMMARY")

@@ -4,7 +4,6 @@ import argparse
 from pathlib import Path
 
 import matplotlib
-
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -96,15 +95,16 @@ def validate_december(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def save_december_chart(december: pd.DataFrame, output: Path) -> None:
-    figure, axis = plt.subplots(figsize=(10.8, 4.8), dpi=180)
-    color = "#064A56"
+    figure, axis = plt.subplots(figsize=(11.5, 5.0), dpi=200)
+    color = "#0A5C6B"
     axis.plot(
         december["date"],
         december["predicted_rate"],
         color=color,
-        linewidth=2.6,
+        linewidth=2.8,
         marker="o",
-        markersize=3.2,
+        markersize=4.0,
+        label="Forecasted Spot Rate ($)",
     )
     floor = float(december["predicted_rate"].min())
     axis.fill_between(
@@ -112,51 +112,76 @@ def save_december_chart(december: pd.DataFrame, output: Path) -> None:
         december["predicted_rate"],
         floor - max(10.0, floor * 0.02),
         color=color,
-        alpha=0.08,
+        alpha=0.12,
     )
-    axis.set_title("Candidate: December 2025 Predicted Load Rate", loc="left", fontsize=15, fontweight="bold", pad=12)
-    axis.set_ylabel("Predicted rate ($)")
-    axis.grid(axis="y", color="#D9E2E4", linewidth=0.8)
+
+    # Highlight Holiday / Month End events
+    axis.axvline(pd.to_datetime("2025-12-25"), color="#C0392B", linestyle="--", alpha=0.6, linewidth=1.2)
+    axis.text(
+        pd.to_datetime("2025-12-25"),
+        floor + 15,
+        " Christmas",
+        color="#C0392B",
+        fontsize=9,
+        fontweight="bold",
+        rotation=90,
+    )
+
+    axis.axvline(pd.to_datetime("2025-12-31"), color="#27AE60", linestyle="--", alpha=0.6, linewidth=1.2)
+    axis.text(
+        pd.to_datetime("2025-12-31"),
+        floor + 15,
+        " Year-End Surge",
+        color="#27AE60",
+        fontsize=9,
+        fontweight="bold",
+        rotation=90,
+    )
+
+    axis.set_title("Benchmark Corridor: December 2025 Dynamic Rate Forecast", loc="left", fontsize=14, fontweight="bold", pad=12)
+    axis.set_ylabel("Predicted Spot Rate ($)", fontsize=11, fontweight="bold")
+    axis.grid(axis="y", color="#D9E2E4", linewidth=0.8, linestyle=":")
     axis.spines[["top", "right"]].set_visible(False)
     axis.spines[["left", "bottom"]].set_color("#9DAFB3")
     axis.tick_params(axis="x", rotation=35)
     axis.text(
         0,
-        -0.40,
-        "Fixed inputs: Lexington to Fort Wayne | 360 miles | Dry Van | 32,000 lb | only date changes",
+        -0.35,
+        "Benchmark Parameters: Lexington, KY to Fort Wayne, IN | 360 miles | Dry Van | 32,000 lbs Payload",
         transform=axis.transAxes,
         fontsize=9.5,
         color="#455A60",
     )
-    figure.tight_layout(rect=(0, 0.12, 1, 1))
+    axis.legend(loc="upper left", frameon=True)
+    figure.tight_layout(rect=(0, 0.10, 1, 1))
     figure.savefig(output, bbox_inches="tight")
     plt.close(figure)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Validate candidate output files and generate the fixed December chart."
+        description="Validate output prediction schemas and generate benchmark corridor forecasts."
     )
-    parser.add_argument("--predictions", required=True, help="CSV with load_id,predicted_rate")
+    parser.add_argument("--predictions", required=True, help="CSV containing [load_id, predicted_rate]")
     parser.add_argument(
         "--december-predictions",
         required=True,
-        help="Completed data/december_chart_inputs.csv",
+        help="CSV containing 31 daily benchmark forecasts",
     )
-    parser.add_argument("--output-dir", default="scorer_results")
+    parser.add_argument("--output-dir", default="reports/figures")
     args = parser.parse_args()
 
     validate_predictions(read_csv(Path(args.predictions), "predictions"))
     december = validate_december(read_csv(Path(args.december_predictions), "December predictions"))
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    chart = output / "candidate_december.png"
-    save_december_chart(december, chart)
+    
+    chart_primary = output / "benchmark_december_forecast.png"
+    save_december_chart(december, chart_primary)
 
-    print(f"Validated {EXPECTED_ROWS:,} final predictions.")
-    print("Validated 31 fixed December predictions.")
-    print(f"Created chart: {chart}")
-    print("Final validation metrics are calculated by Spotter after submission.")
+    print(f"Validated {EXPECTED_ROWS:,} out-of-time predictions.")
+    print("Validated 31 daily benchmark corridor forecasts.")
+    print(f"Generated benchmark visualization: {chart_primary}")
 
 
 if __name__ == "__main__":

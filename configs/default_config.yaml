@@ -1,0 +1,63 @@
+# Freight Pricing Intelligence Engine Configuration
+
+data:
+  train_path: "data/train.csv"
+  val_path: "data/validation.csv"
+  december_path: "data/december_benchmark.csv"
+  template_path: "data/validation_template.csv"
+  output_predictions_path: "validation_predictions.csv"
+  output_december_path: "data/december_benchmark.csv"
+  figures_dir: "reports/figures"
+
+preprocessing:
+  default_median_weight: 32000.0
+  floor_prediction_rate: 10.0
+
+features:
+  categorical:
+    - origin
+    - destination
+    - pickup
+    - delivery
+    - route
+    - equipment
+    - equipment_route
+  ignore:
+    - load_id
+    - posted_rate
+    - date
+    - pickup_lat
+    - pickup_lon
+    - delivery_lat
+    - delivery_lon
+    - weight
+    - market_index
+
+model:
+  target_mode: "direct"  # "direct" (posted_rate) or "rpm" (rate_per_mile)
+  seed: 42
+  weights:
+    catboost: 0.80
+    hist_gb: 0.16
+    ridge: 0.04
+  catboost:
+    iterations: 1200
+    learning_rate: 0.04
+    depth: 6
+    l2_leaf_reg: 5.0
+    random_strength: 0.5
+    early_stopping_rounds: 100
+  hist_gb:
+    max_iter: 400
+    learning_rate: 0.05
+    max_depth: 8
+    l2_regularization: 2.0
+  ridge:
+    alphas_num: 20
+    alpha_min: 0.01
+    alpha_max: 10000.0
+
+split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15

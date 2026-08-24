@@ -32,8 +32,7 @@ def compute_bearing(lat1, lon1, lat2, lon2):
 
 def preprocess_data(data, reference_df=None, median_weight=32000.0):
     """
-    Cleans raw inputs, fixes negative weights, imputes daily market indices,
-    and builds domain-specific spatial, load physics, and interaction features.
+    Cleans and engineers features for freight rate prediction.
     """
     df = data.copy()
     df["date"] = pd.to_datetime(df["date"])
